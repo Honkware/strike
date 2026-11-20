@@ -1,0 +1,101 @@
+{
+ "gpu": {
+  "name": "NVIDIA H100 80GB HBM3",
+  "max_w": 700.0,
+  "default_w": 700.0,
+  "min_w": 200.0
+ },
+ "model": "Qwen/Qwen2.5-7B-Instruct",
+ "dtypes": [
+  "fp16",
+  "int4"
+ ],
+ "mode": "default-only",
+ "rows": [
+  {
+   "batch": 1,
+   "seconds": 4.721,
+   "tokens": 288,
+   "tok_per_s": 61.01,
+   "watts_mean": 253.7,
+   "watts_peak": 256.9,
+   "joules_per_token": 4.1587,
+   "power_samples": 22,
+   "cap_pct": 100,
+   "cap_w": 700.0,
+   "mode": "default-only",
+   "dtype": "fp16"
+  },
+  {
+   "batch": 32,
+   "seconds": 4.995,
+   "tokens": 9216,
+   "tok_per_s": 1845.2,
+   "watts_mean": 313.4,
+   "watts_peak": 328.9,
+   "joules_per_token": 0.1698,
+   "power_samples": 23,
+   "cap_pct": 100,
+   "cap_w": 700.0,
+   "mode": "default-only",
+   "dtype": "fp16"
+  },
+  {
+   "batch": 128,
+   "seconds": 5.76,
+   "tokens": 36864,
+   "tok_per_s": 6400.1,
+   "watts_mean": 497.3,
+   "watts_peak": 522.2,
+   "joules_per_token": 0.0777,
+   "power_samples": 26,
+   "cap_pct": 100,
+   "cap_w": 700.0,
+   "mode": "default-only",
+   "dtype": "fp16"
+  },
+  {
+   "batch": 1,
+   "seconds": 6.733,
+   "tokens": 288,
+   "tok_per_s": 42.78,
+   "watts_mean": 199.3,
+   "watts_peak": 205.6,
+   "joules_per_token": 4.6595,
+   "power_samples": 31,
+   "cap_pct": 100,
+   "cap_w": 700.0,
+   "mode": "default-only",
+   "dtype": "int4"
+  },
+  {
+   "batch": 32,
+   "seconds": 9.422,
+   "tokens": 9216,
+   "tok_per_s": 978.1,
+   "watts_mean": 371.6,
+   "watts_peak": 384.2,
+   "joules_per_token": 0.3799,
+   "power_samples": 42,
+   "cap_pct": 100,
+   "cap_w": 700.0,
+   "mode": "default-only",
+   "dtype": "int4"
+  },
+  {
+   "batch": 128,
+   "seconds": 9.792,
+   "tokens": 36864,
+   "tok_per_s": 3764.8,
+   "watts_mean": 490.1,
+   "watts_peak": 543.8,
+   "joules_per_token": 0.1302,
+   "power_samples": 44,
+   "cap_pct": 100,
+   "cap_w": 700.0,
+   "mode": "default-only",
+   "dtype": "int4"
+  }
+ ],
+ "failures": []
+}

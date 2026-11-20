@@ -1,0 +1,16 @@
+.env
+.env.*
+!.env.example
+*.session
+__pycache__/
+*.pyc
+.DS_Store
+*.log
+cache/
+*.parquet
+*.csv
+*.zip
+*.tar.gz
+*.pdf
+*.safetensors
+*.bin
