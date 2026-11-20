@@ -84,15 +84,20 @@ def fetch():
             f.write_text(json.dumps(_page("ercot_load", a+"T00:00:00Z", b+"T00:00:00Z")))
         print(f"  load   {a}: {len(json.loads(f.read_text())):,}")
 
+def _cached(pattern):
+    fs = sorted(CACHE.glob(pattern))
+    if not fs: sys.exit(f"no {pattern} in {CACHE} - run: python3 strike.py fetch")
+    return fs
+
 def prices():
     r = []
-    for f in sorted(CACHE.glob("lz_houston_*.json")): r += json.loads(f.read_text())
+    for f in _cached("lz_houston_*.json"): r += json.loads(f.read_text())
     return sorted([x for x in r if x.get("spp") is not None], key=lambda x: x["interval_start_utc"])
 
 def intervals():
     """ERCOT 5-min load -> 15-min settlement intervals in CPT."""
     r = []
-    for f in sorted(CACHE.glob("load_*.json")): r += json.loads(f.read_text())
+    for f in _cached("load_*.json"): r += json.loads(f.read_text())
     b = {}
     for x in r:
         if not x.get("load"): continue
