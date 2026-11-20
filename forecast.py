@@ -8,9 +8,9 @@ is worth $56,510/MW-yr; curtailing costs $1,786/MWh of lost compute. So:
 
     break-even = 56,510 / 1,786 = 31.6 curtailment hours per year
 
-Every naive rule measured in strike.py needs 110-220 h/yr. The gap between
-what a forecaster needs (32h) and what simple thresholds deliver (117h) IS the
-product. This measures whether a real forecaster closes it.
+The no-hindsight rules in strike.py that catch every peak need 114-220 h/yr.
+This measures whether a forecaster built on published temperature forecasts
+closes the gap to 32.
 
 Nothing here is simulated. Real ERCOT load, real settlement peaks, and - the
 part that makes the backtest honest - real FORECASTS with their publish times,

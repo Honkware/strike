@@ -138,6 +138,7 @@ def backtest():
     print(f"\nBREAK-EVEN: at most {be:.1f} curtailment hrs/yr at deferrable={P['deferrable']:.0%}\n")
     print("Rule A: curtail if load 1h ago > T, weekday 14-19h CPT, Jun-Sep. No hindsight.")
     print(f"  {'T (MW)':>9}{'hrs/yr':>9}{'caught':>10}{'net $/MW-yr':>14}")
+    full = []
     for T in (76000, 78000, 80000, 82000):
         h, c, n = 0, 0, 0
         for (yr, mo), (p0, _) in pk.items():
@@ -150,13 +151,37 @@ def backtest():
                     h += 0.25
                     if k == p0: c += 1
         y = n / 4
+        if c == n: full.append(h / y)
         print(f"  {T:>9,}{h/y:>9.1f}{c:>6}/{n:<3}{c/n*P['cp_rate'] - h/y*curtail_cost():>14,.0f}")
-    print("\n  -> every threshold loses. The gap between ~117h needed and ~32h affordable")
-    print("     IS the product: better forecasting closes it.")
+
+    # The month's record so far is known at decision time, so a fixed MW threshold
+    # does not have to carry across a cool June and a hot August.
+    print("\nRule B: curtail if load 1h ago >= alpha x the month's max load up to 1h ago,")
+    print("        weekday 14-19h CPT, Jun-Sep. No hindsight.")
+    print(f"  {'alpha':>9}{'hrs/yr':>9}{'caught':>10}{'net $/MW-yr':>14}")
+    for a in (1.00, 0.99, 0.98):
+        h, c, n = 0, 0, 0
+        for (yr, mo), (p0, _) in pk.items():
+            n += 1
+            rmax = 0.0
+            for k, _ in iv:
+                if k.year != yr or k.month != mo: continue
+                prev = L.get(k - timedelta(hours=1))
+                if (rmax and prev is not None and prev >= a * rmax
+                        and k.weekday() < 5 and 14 <= k.hour < 19):
+                    h += 0.25
+                    if k == p0: c += 1
+                if prev is not None: rmax = max(rmax, prev)
+        y = n / 4
+        if c == n: full.append(h / y)
+        print(f"  {a:>9.2f}{h/y:>9.1f}{c:>6}/{n:<3}{c/n*P['cp_rate'] - h/y*curtail_cost():>14,.0f}")
+    if full:
+        print(f"\n  -> every rule loses. Catching all {n} peaks costs {min(full):.1f} h/yr at best,")
+        print(f"     against {be:.1f} h/yr affordable.")
 
 def surface():
     print(f"\nNET $/MW-yr capturing all four 4CP intervals (4CP rate ${P['cp_rate']:,.0f}/MW-yr)\n")
-    hrs = [117, 80, 60, 40, 30, 20, 12, 6]
+    hrs = [115, 80, 60, 40, 30, 20, 12, 6]     # 115: backtest() rule B, 114.5 h/yr
     print(f"  {'deferrable':>11}" + "".join(f"{h:>9}h" for h in hrs))
     print("  " + "-" * (11 + 10 * len(hrs)))
     for d in (0.0, 0.25, 0.5, 0.7, 0.8, 0.9, 1.0):

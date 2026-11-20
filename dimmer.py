@@ -104,7 +104,7 @@ if __name__ == "__main__":
         be = breakeven_hours(shed, rl)
         if be > best_be:
             best_lbl, best_be = lbl, be
-    print(f"\n  A naive 4CP forecaster needs ~117 hrs/yr to catch all four peaks.")
+    print(f"\n  The best no-hindsight rule in strike.py needs ~115 hrs/yr to catch all four peaks.")
     print(f"  Full curtailment breaks even at {sw:.0f} hrs -> it loses.")
     if best_lbl is None:
         print("  No partial operating point measured.")
@@ -117,7 +117,7 @@ if __name__ == "__main__":
         print(f"     power more expensively than simply turning the machine off.\n")
 
     print("NET $/MW-yr, forecaster quality x dim depth\n")
-    hrs = [117, 80, 60, 40, 30, 20]
+    hrs = [115, 80, 60, 40, 30, 20]
     print(f"  {'operating point':<30}" + "".join(f"{h:>9}h" for h in hrs))
     print("  " + "-" * (30 + 10 * len(hrs)))
     for shed, rl, lbl in FRONTIER:
