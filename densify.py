@@ -25,6 +25,8 @@ what is it worth? That tradeoff is what this simulates.
 """
 import argparse, json, math, pathlib, random, statistics
 
+import strike
+
 HERE = pathlib.Path(__file__).parent
 
 
@@ -168,7 +170,7 @@ def main():
     print(f"\n  With enough slack the 4CP band costs ~nothing to vacate - the load")
     print(f"  simply lands elsewhere. That is dispatchable capacity the grid can")
     print(f"  count on, at no loss to the operator, and it avoids a 4CP charge")
-    print(f"  worth $66,000/MW-yr (see dimmer.py). Curtailment, measured earlier,")
+    print(f"  worth ${strike.P['cp_rate']:,.0f}/MW-yr (strike.py). Curtailment, measured earlier,")
     print(f"  costs -$300,000/MW-yr to deliver the same service.")
 
     print(f"\n  Deferral pays by ENABLING BATCHING, not by finding cheap hours.")

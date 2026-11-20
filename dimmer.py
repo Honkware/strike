@@ -15,10 +15,10 @@ the leverage ratio (power shed / revenue lost) is roughly 4.5x at shallow depths
 
 This re-runs the 4CP economics on the dial instead of the switch.
 """
-CP_RATE   = 66_000.0   # $/MW-yr, CenterPoint 4CP rider stack, assembled from tariff pp.97-157
-GPU_HR    = 2.50       # $/GPU-hr on-demand H100
-KW_PER_GPU= 1.40       # facility kW/GPU incl. PUE
-REV_MWH   = GPU_HR * (1000.0 / KW_PER_GPU)   # $/MWh of revenue riding on facility power
+import strike
+
+CP_RATE   = strike.P["cp_rate"]   # $/MW-yr, one figure for every script
+REV_MWH   = strike.compute_mwh()  # $/MWh of revenue riding on facility power
 
 # (power shed, revenue lost) operating points on the frontier.
 # shallow points are lit-anchored; deep points need measuring on real hardware.
@@ -43,7 +43,7 @@ def breakeven_hours(shed, rev_loss):
     if rev_loss <= 0: return float("inf")
     return shed * CP_RATE / (REV_MWH * rev_loss)
 
-def load_measured(path="frontier.json"):
+def load_measured(path="frontier_7b.json"):
     """Replace the literature-anchored FRONTIER with points measured by sweep.py.
 
     Until this is run the deep rows are extrapolations of mine, and the whole
@@ -72,7 +72,7 @@ if __name__ == "__main__":
     import sys
     if "--measured" in sys.argv:
         m = load_measured(sys.argv[sys.argv.index("--measured") + 1]
-                          if len(sys.argv) > sys.argv.index("--measured") + 1 else "frontier.json")
+                          if len(sys.argv) > sys.argv.index("--measured") + 1 else "frontier_7b.json")
         if m:
             FRONTIER = [(0.0, 0.0, "baseline")] + m + [(1.0, 1.0, "full curtailment (the switch)")]
             print("USING MEASURED FRONTIER\n")
