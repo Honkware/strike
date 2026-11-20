@@ -52,7 +52,7 @@ def _get(ds, params, tries=6):
 
 def _dotenv():
     f = pathlib.Path(__file__).parent / ".env"
-    for line in f.read_text().splitlines():
+    for line in (f.read_text().splitlines() if f.exists() else []):
         if line.startswith("GRIDSTATUS_API_KEY="):
             return line.split("=", 1)[1].strip()
     sys.exit("no GRIDSTATUS_API_KEY in env or .env")
