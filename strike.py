@@ -112,15 +112,19 @@ def four_cp(iv):
 
 # ------------------------------------------------------------------ analyses
 
+def price_rule(p, thr, yrs):
+    """Curtail every 15-min interval priced >= thr -> (hrs/yr, $ saved, $ lost) per MW-yr."""
+    hrs = sum(1 for x in p if x >= thr) * 0.25 / yrs
+    saved = sum(x for x in p if x >= thr) * 0.25 / yrs
+    return hrs, saved, hrs * curtail_cost()
+
 def energy():
     p = [x["spp"] for x in prices()]; n = len(p); yrs = n * 0.25 / 8760
     print(f"\nLZ_HOUSTON {n:,} intervals, {yrs:.2f} yrs   mean ${sum(p)/n:.2f}/MWh  max ${max(p):,.0f}")
     print(f"compute is worth ${compute_mwh():,.0f}/MWh - {compute_mwh()/(sum(p)/n):.0f}x the average power price\n")
     print(f"  {'curtail when price >=':<26}{'hrs/yr':>8}{'saved':>11}{'lost':>11}{'net $/MW-yr':>14}")
     for thr in (100, 250, 500, 1000, 1750, 2500):
-        hrs = sum(1 for x in p if x >= thr) * 0.25 / yrs
-        saved = sum(x for x in p if x >= thr) * 0.25 / yrs
-        lost = hrs * curtail_cost()
+        hrs, saved, lost = price_rule(p, thr, yrs)
         print(f"  ${thr:<25,}{hrs:>8.1f}{saved:>11,.0f}{lost:>11,.0f}{saved-lost:>14,.0f}")
     print("\n  -> price-driven curtailment is value-destroying for high-value compute.")
 
