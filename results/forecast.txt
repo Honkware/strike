@@ -1,0 +1,54 @@
+break-even: $56,510/MW-yr / $1,786/MWh = 31.6 curtailment hours per year
+
+  309 days over 3 seasons, 24h notice on the day-ahead call
+
+  STAGE 1 ONLY - arm the day, hold the whole 14:00-18:59 window
+    margin   armed   hrs/yr   4CP caught   pays?
+  -----------------------------------------------
+      1.00      39       65       6/10          
+      0.98      62      103       6/10          
+      0.96      95      158      10/10          
+      0.94     149      248      10/10          
+
+  STAGE 1 + 2 - arm the day, then trigger on observed load
+    margin  trigger   armed   hrs/yr   4CP caught   pays?
+  --------------------------------------------------------
+      0.96    0.995      95     48.0       7/10          
+      0.96    0.990      95     68.2       8/10          
+      0.96    0.980      95     99.8       9/10          
+      0.96    0.970      95    117.2       9/10          
+      0.96    0.960      95    126.5      10/10          
+      0.94    0.995     149     52.2       7/10          
+      0.94    0.990     149     79.8       8/10          
+      0.94    0.980     149    131.5       9/10          
+      0.94    0.970     149    163.5       9/10          
+      0.94    0.960     149    182.2      10/10          
+
+  WHY IT DOES NOT CLOSE - is the peak day identifiable at all?
+
+  precision the task demands
+    median load gap, a month's #1 day vs its #2        217 MW   (0.26% of peak)
+  precision a day-ahead forecast delivers
+    walk-forward temperature model                   2,684 MW
+    same features fit WITH hindsight (the floor)     2,364 MW
+    persistence, 'tomorrow equals today'             2,380 MW
+
+  The error bar is 11x the gap it would have to resolve, and that
+  holds even fitting on the answers. The temperature model does not
+  beat persistence (2,684 vs 2,380 MW), so these features carry
+  almost no marginal information about WHICH hot day sets the record.
+
+  Ranking the top days of a month needs a day-ahead peak forecast
+  accurate to 0.26%. The best these features reach, fit on
+  the answers, is 2.9% - an order of magnitude coarser. This is
+  not a tuning problem. (Published ERCOT day-ahead load MAPE is
+  around 2%, consistent with that, but is cited here, not measured.)
+
+  MEASURED CONSEQUENCE: best honest full coverage is 126.5 h/yr
+  against a 31.6 h/yr break-even, so curtailment-based 4CP
+  avoidance pays only if 75% of the load is deferrable rather
+  than lost. Since you cannot know WHICH day, you must be cheap to
+  curtail on MANY days - which is precisely what densify.py measured
+  at $0 (94% of the saving comes from batching, not from timing).
+
+  The prediction route is closed. The flexibility route is not.

@@ -1,0 +1,13 @@
+
+MEASURED FRONTIER   (NVIDIA H100 80GB HBM3, default-only)
+
+    dtype  batch   cap  power shed  tput lost  leverage
+     fp16    128  100%       0.0%       0.0%         -
+     int4    128  100%       1.5%      41.2%      0.0x
+     int4     32  100%      25.3%      84.7%      0.3x
+     fp16     32  100%      37.0%      71.2%      0.5x
+     fp16      1  100%      49.0%      99.1%      0.5x
+     int4      1  100%      59.9%      99.3%      0.6x
+
+  best leverage: 0.6x at batch 1, cap 100% - sheds 60% of power for 99% of throughput
+  (the switch is 1.0x by definition: 100% power for 100% throughput)

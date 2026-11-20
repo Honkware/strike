@@ -1,0 +1,33 @@
+USING MEASURED FRONTIER
+
+revenue at risk: $1,786/MWh   4CP rate: $56,510/MW-yr
+
+THE FRONTIER - how much flexibility costs, per unit delivered
+
+  operating point                power shed  rev lost  leverage  $/MW-shed-hr
+  measured @ cap 100%, batch 1         60%     99.3%      0.6x         2,960
+  full curtailment (the switch)       100%    100.0%      1.0x         1,786
+
+
+BREAK-EVEN CURTAILMENT HOURS (how many false alarms you can afford)
+
+  operating point                  break-even hrs/yr
+  measured @ cap 100%, batch 1                    19
+  full curtailment (the switch)                   32
+
+  The best no-hindsight rule in strike.py needs ~115 hrs/yr to catch all four peaks.
+  Full curtailment breaks even at 32 hrs -> it loses.
+  Best dial setting breaks even at 19 hrs (measured @ cap 100%, batch 1)
+  -> WORSE than the switch. Every measured operating point sheds
+     power more expensively than simply turning the machine off.
+
+NET $/MW-yr, forecaster quality x dim depth
+
+  operating point                     115h       80h       60h       40h       30h       20h
+  ------------------------------------------------------------------------------------------
+  measured @ cap 100%, batch 1    -170,120  -108,039   -72,564   -37,089   -19,352    -1,614
+  full curtailment (the switch)   -148,847   -86,347   -50,633   -14,919     2,939    20,796
+
+  Every measured leverage is <= 1.0x, and the switch is 1.0x by
+  definition - so no dial setting beats turning it off. On this
+  hardware and workload the dial does not exist.

@@ -1,0 +1,31 @@
+
+  case          eff Hz   mean W      CV  peak Hz  peak/median
+  ------------------------------------------------------------
+  train_b1       197.9    345.1   0.120     1.00         10.4
+  train_b2       197.8    436.9   0.125     1.00         12.0
+  train_b4       197.9    518.9   0.131     1.00         10.1
+  train_b8       197.9    590.0   0.123     1.00         12.6
+  infer_b1       197.7    162.8   0.024     1.00         16.1
+  infer_b8       197.8    163.3   0.020     1.00         15.7
+  infer_b32      197.8    186.3   0.026     1.00         15.9
+  infer_b128     197.8    259.3   0.035     1.50         19.6
+  infer_b256     197.6    351.2   0.041     1.50         18.4
+
+  CV vs POWER - does variability track the workload, or just the load?
+    infer_b1       162.8W   CV 0.0237  ####
+    infer_b8       163.3W   CV 0.0197  ###
+    infer_b32      186.3W   CV 0.0261  #####
+    infer_b128     259.3W   CV 0.0354  #######
+    train_b1       345.1W   CV 0.1203  ########################
+    infer_b256     351.2W   CV 0.0411  ########
+    train_b2       436.9W   CV 0.1248  ########################
+    train_b4       518.9W   CV 0.1307  ##########################
+    train_b8       590.0W   CV 0.1235  ########################
+
+  PERIODICITY: no - peak sits at the drift floor, not a step rate.
+  VARIANCE:    training CV 0.120-0.131   inference CV 0.020-0.041   (2.9x apart)
+  CONTROL:     at matched power (345W vs 351W) the CVs are 0.120 vs 0.041 - 2.9x
+
+  GO. Variance separates the workloads independently of how loaded
+  they are, so a power trace identifies WHAT is running, not just
+  how much. That is the signature a grid operator could read.

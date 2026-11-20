@@ -1,0 +1,36 @@
+measured curve (frontier_7b.json): b1=4.159J  b32=0.170J  b128=0.078J
+prices: 70,461 intervals, mean $31.86/MWh
+workload: 2,000 jobs over 168h, 988.0B tokens
+
+   deadline slack  mean batch    runs     MWh/yr        $/yr  vs no slack
+  ------------------------------------------------------------------------
+              0h           3     632     19,761     518,511           0%
+            0.5h           9     220      7,648     205,105          60%
+              1h          15     133      4,816     125,623          76%
+              2h          27      75      2,873     111,782          78%
+              4h          50      40      1,888      58,019          89%
+              8h          95      21      1,309      31,328          94%
+             24h         125      16      1,132      32,401          94%
+             72h         125      16      1,132      32,790          94%
+
+  WHICH MECHANISM PAYS
+    no slack, price-blind          $     518,511/yr
+    timing only (cheapest quartile)$     263,341/yr      49% saved
+    density only (8h slack)        $      31,328/yr      94% saved
+
+  GRID SERVICE - keeping 15:00-17:59 clear (the 4CP band)
+     slack   $/yr free-running   $/yr avoiding 4CP   cost of service
+       2h             111,782             111,782               +0
+       4h              58,019              58,019               +0
+       8h              31,328              31,328               +0
+      24h              32,401              31,686             -715
+
+  With enough slack the 4CP band costs ~nothing to vacate - the load
+  simply lands elsewhere. That is dispatchable capacity the grid can
+  count on, at no loss to the operator, and it avoids a 4CP charge
+  worth $56,510/MW-yr (strike.py). Curtailment, measured earlier,
+  costs -$300,000/MW-yr to deliver the same service.
+
+  Deferral pays by ENABLING BATCHING, not by finding cheap hours.
+  The same work costs 54x more energy run one job at a time,
+  and the curve saturates by ~8h - you need hours of slack, not days.

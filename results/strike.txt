@@ -1,0 +1,68 @@
+
+LZ_HOUSTON 70,461 intervals, 2.01 yrs   mean $31.86/MWh  max $4,856
+compute is worth $1,786/MWh - 56x the average power price
+
+  curtail when price >=       hrs/yr      saved       lost   net $/MW-yr
+  $100                         189.2     38,293    337,895      -299,602
+  $250                          23.9     15,044     42,625       -27,581
+  $500                           7.8      9,720     13,986        -4,267
+  $1,000                         2.7      6,096      4,884         1,212
+  $1,750                         1.4      4,333      2,442         1,891
+  $2,500                         0.7      3,023      1,332         1,691
+
+  -> price-driven curtailment is value-destroying for high-value compute.
+
+37,244 settlement intervals. Actual 4CP (monthly system peak):
+
+  2024-06  Jun 27 16:45 CPT   80,274 MW    46 intervals within 1%
+  2024-07  Jul 01 16:30 CPT   81,525 MW    31 intervals within 1%
+  2024-08  Aug 20 16:45 CPT   85,796 MW    22 intervals within 1%
+  2024-09  Sep 19 16:45 CPT   78,213 MW    21 intervals within 1%
+  2025-06  Jun 20 15:45 CPT   78,217 MW    35 intervals within 1%
+  2025-07  Jul 28 15:30 CPT   82,320 MW    73 intervals within 1%
+  2025-08  Aug 18 17:00 CPT   84,048 MW    31 intervals within 1%
+  2025-09  Sep 04 17:15 CPT   80,237 MW    32 intervals within 1%
+  2026-06  Jun 18 15:45 CPT   82,713 MW    73 intervals within 1%
+  2026-07  Jul 22 16:45 CPT   91,221 MW    14 intervals within 1%
+  2026-08  Aug 04 15:45 CPT   87,118 MW    27 intervals within 1%
+
+BREAK-EVEN: at most 31.6 curtailment hrs/yr at deferrable=0%
+
+Rule A: curtail if load 1h ago > T, weekday 14-19h CPT, Jun-Sep. No hindsight.
+     T (MW)   hrs/yr    caught   net $/MW-yr
+     76,000    220.3    11/11       -336,834
+     78,000    163.6     9/11       -245,972
+     80,000    110.5     7/11       -161,279
+     82,000     60.8     4/11        -88,055
+
+Rule B: curtail if load 1h ago >= alpha x the month's max load up to 1h ago,
+        weekday 14-19h CPT, Jun-Sep. No hindsight.
+      alpha   hrs/yr    caught   net $/MW-yr
+       1.00     32.4     4/11        -37,243
+       0.99    114.5    11/11       -148,035
+       0.98    173.0    11/11       -252,419
+
+  -> every rule loses. Catching all 11 peaks costs 114.5 h/yr at best,
+     against 31.6 h/yr affordable.
+
+NET $/MW-yr capturing all four 4CP intervals (4CP rate $56,510/MW-yr)
+
+   deferrable      115h       80h       60h       40h       30h       20h       12h        6h
+  -------------------------------------------------------------------------------------------
+           0%  -148,847   -86,347   -50,633   -14,919     2,939    20,796    35,081    45,796
+          25%   -97,508   -50,633   -23,847     2,939    16,331    29,724    40,439    48,474
+          50%   -46,169   -14,919     2,939    20,796    29,724    38,653    45,796    51,153
+          70%    -5,097    13,653    24,367    35,081    40,439    45,796    50,081    53,296
+          80%    15,439    27,939    35,081    42,224    45,796    49,367    52,224    54,367
+          90%    35,974    42,224    45,796    49,367    51,153    52,939    54,367    55,439
+         100%    56,510    56,510    56,510    56,510    56,510    56,510    56,510    56,510
+
+BREAK-EVEN deferrable share by forecaster quality:
+   115h/yr ->  72.5% deferrable
+    80h/yr ->  60.4% deferrable
+    60h/yr ->  47.3% deferrable
+    40h/yr ->  20.9% deferrable
+    30h/yr ->   0.0% deferrable   (pays at ANY mix)
+    20h/yr ->   0.0% deferrable   (pays at ANY mix)
+    12h/yr ->   0.0% deferrable   (pays at ANY mix)
+     6h/yr ->   0.0% deferrable   (pays at ANY mix)
