@@ -1,23 +1,24 @@
 # STRIKE
 
-A common idea for AI datacenters in Texas is to cut load when power prices spike. STRIKE checks whether that pays for a site in ERCOT's Houston zone, using two years of real prices and system load from August 2024 to August 2026.
+A common idea for AI datacenters in Texas is to cut load when power prices spike. STRIKE checks whether that pays for a site in ERCOT's Houston zone, using real ERCOT prices from August 2024 through September 2026 and system load for the three summers in that span.
 
-Cutting load on price alone loses money, because a GPU-hour is worth much more than the power it uses. With compute valued at about $1,786 per MWh and an average price of $31.86, shutting down whenever the price passes $100/MWh costs about $300k per MW-year. Thresholds of $1,000 and above come out slightly ahead, by less than $2k a year.
+The short version is that it doesn't pay, because a GPU-hour is worth far more than the power it uses. I valued compute at about $1,786 per MWh, which is $2.50 per H100-hour at 1.4 kW per GPU, while the average price over the period was $32.36. The table shows what happens if the site shuts down whenever the price passes a threshold.
 
 | curtail when price >= | hours/yr | net $/MW-yr |
 |---|---|---|
-| $100 | 189.2 | -299,602 |
-| $500 | 7.8 | -4,267 |
-| $1,000 | 2.7 | +1,212 |
-| $1,750 | 1.4 | +1,891 |
+| $100 | 189.0 | -299,057 |
+| $250 | 26.5 | -31,833 |
+| $500 | 7.6 | -4,343 |
+| $1,000 | 2.5 | +1,125 |
+| $1,750 | 1.3 | +1,755 |
 
-Transmission charges are a bigger number. CenterPoint bills them on a customer's load during the four coincident peaks (4CP) each summer, and being off for all four would save about $56,510 per MW-year. That saving pays for 31.6 hours of lost compute a year. The cheapest rule I found that catches every peak without knowing them in advance needs 114.5 hours, so it loses money as well, and adding a day-ahead temperature forecast didn't change that.
+The $100 row loses the most because it covers 189 hours a year, and each of those hours gives up far more in compute than it saves on power. Only thresholds of $1,000 and up come out ahead, and by less than $2k a year.
 
-I also measured two things on a rented H100. Running the GPU at a lower setting always gave up more throughput than power (for example 37% less power for 71% less throughput), so switching off is better than turning down. When jobs can wait they can run in larger batches, and eight hours of slack cut the energy cost by 94% in the simulation.
+Transmission charges looked more promising. CenterPoint bills them on load during four summer peaks (4CP), and being off for all four saves about $68,800 per MW-year, which pays for 38.5 hours of lost compute. The cheapest rule I found that catches every peak without hindsight needs 148 hours a year, and a day-ahead temperature forecast didn't bring that down.
+
+I also tested an H100 and found that turning a GPU down costs more than turning it off, while letting jobs wait eight hours cut the energy cost by 94% in the simulation.
 
 ## Reproducing the numbers
-
-It needs Python 3.10 or later and only uses the standard library.
 
 ```bash
 export GRIDSTATUS_API_KEY=...   # free key from gridstatus.io
@@ -26,12 +27,12 @@ make                            # rebuilds every table in results/
 make test
 ```
 
-The two GPU scripts, `sweep.py` and `trace_probe.py`, need torch and an NVIDIA card. Their recorded output is in the repo, and you can re-run the analysis on it with `--replay`.
+Everything runs on Python 3.10 or later with only the standard library. The GPU scripts are the exception and need torch, transformers and an NVIDIA card, but their recorded output is in the repo and `--replay` reruns the analysis on it.
 
 ## Limits
 
-- The $56,510 4CP rate is a 2023 CenterPoint figure. You can set a current one with `cp_rate` in `strike.py`.
-- The analysis covers Houston and CenterPoint only, with 11 peaks over just under three summers.
-- The GPU numbers come from one H100 running one 7B model for inference.
+- The 4CP rate is CenterPoint's transmission rider for Transmission Service customers, which is $5.733756 per 4 CP kVA a month from March 2026 (PUC docket 59042). The base transmission charge isn't included.
+- The analysis only covers Houston and CenterPoint, over three summers.
+- The GPU measurements come from one H100 running a 7B model for inference.
 
-The data is ERCOT's, fetched through gridstatus.io. The code is MIT licensed.
+The data is ERCOT's and was fetched through gridstatus.io. The code is MIT licensed.

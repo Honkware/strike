@@ -2,23 +2,18 @@
 """
 DENSIFY - how much is deferral worth, and why?
 
-DIMMER's thesis died on measurement: every workload lever sheds power more
-expensively than switching off (see README). But the same sweep showed something
-larger going the other way.
+dimmer.py found that turning a GPU down sheds power more expensively than
+switching it off. The same sweep showed a much larger effect from batching.
 
     fp16 batch   1   4.159 J/token
     fp16 batch 128   0.078 J/token      -> 54x less energy for identical work
 
-Meanwhile timing is worth 2.4x: ERCOT LZ_HOUSTON averages $31.86/MWh and its
-cheapest quartile $13.33/MWh.
+Timing matters much less. The cheapest quartile of LZ_HOUSTON hours costs
+well under half the average, which is a far smaller factor than 54x.
 
-So deferral's value is NOT price arbitrage. It is that waiting accumulates work,
-and accumulated work can be batched. Density is ~22x the bigger lever, and the
-scheduler exists to harvest it.
-
-The constraint is deadlines. You cannot accumulate forever, so the real question
-is: given the slack your workload actually has, what batch size can you reach and
-what is it worth? That tradeoff is what this simulates.
+So most of the value of deferral comes from letting work pile up so it can run
+in bigger batches. Deadlines limit how long work can wait, and this script
+simulates how much batch size a given amount of slack buys and what it saves.
 
   python3 densify.py                        sweep deadline slack
   python3 densify.py --arrivals 200 --hours 720
@@ -60,6 +55,8 @@ def prices(cache="cache"):
     out = []
     for f in sorted((HERE / cache).glob("lz_houston_*.json")):
         out += [x for x in json.loads(f.read_text()) if x.get("spp") is not None]
+    if not out:
+        raise SystemExit(f"no lz_houston_*.json in {cache}/ - run: python3 strike.py fetch")
     out.sort(key=lambda x: x["interval_start_utc"])
     return [x["spp"] for x in out]
 
@@ -157,7 +154,7 @@ def main():
     print(f"    density only (8h slack)        ${cost8*yr:>12,.0f}/yr"
           f"   {(1-cost8/cost0)*100:>5.0f}% saved")
     # --- the grid half ---------------------------------------------------
-    # All 11 measured ERCOT 4CP peaks land 15:00-17:59 CPT. Keeping a 3-hour
+    # The measured ERCOT 4CP peaks land 15:00-17:59 CPT. Keeping a 3-hour
     # band clear is what makes the load dispatchable; the question is its cost.
     AVOID = (15, 16, 17)
     print(f"\n  GRID SERVICE - keeping {AVOID[0]}:00-{AVOID[-1]}:59 clear (the 4CP band)")
@@ -167,13 +164,11 @@ def main():
         _, avd,  _, _ = simulate(jobs, px, jtok, a.max_batch, slack, avoid=AVOID)
         delta = (avd - free) * yr
         print(f"  {slack:>6}h{free*yr:>20,.0f}{avd*yr:>20,.0f}{delta:>+17,.0f}")
-    print(f"\n  With enough slack the 4CP band costs ~nothing to vacate - the load")
-    print(f"  simply lands elsewhere. That is dispatchable capacity the grid can")
-    print(f"  count on, at no loss to the operator, and it avoids a 4CP charge")
-    print(f"  worth ${strike.P['cp_rate']:,.0f}/MW-yr (strike.py). Curtailment, measured earlier,")
-    print(f"  costs -$300,000/MW-yr to deliver the same service.")
+    print(f"\n  With enough slack the 4CP band costs almost nothing to keep clear,")
+    print(f"  because the work lands in other hours. That avoids a 4CP charge worth")
+    print(f"  ${strike.P['cp_rate']:,.0f}/MW-yr (strike.py) without losing any compute.")
 
-    print(f"\n  Deferral pays by ENABLING BATCHING, not by finding cheap hours.")
+    print(f"\n  Deferral pays by letting jobs batch, more than by finding cheap hours.")
     print(f"  The same work costs {pts[0][1]/pts[-1][1]:.0f}x more energy run one job at a time,")
     print(f"  and the curve saturates by ~8h - you need hours of slack, not days.")
 

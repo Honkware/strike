@@ -1,19 +1,15 @@
 #!/usr/bin/env python3
 """
-DIMMER - an AI datacenter is not a switch, it is a dial.
+DIMMER - can a datacenter turn its GPUs down instead of off?
 
-Every flexibility analysis (including strike.py) models curtailment
-as binary: full load or zero load. For an AI datacenter that is simply wrong.
-GPUs have a power-performance frontier, and it is steeply favourable:
+strike.py treats curtailment as all or nothing. A GPU can also run at a lower
+power cap, a smaller batch or a lower precision, and published figures suggest
+that sheds power for a small loss of throughput (for example an A100 capped
+from 250 W to 175 W losing about 7% of inference speed).
 
-  A100 power cap 250W -> 175W : -30% power for +6.7% inference time   [measured, lit]
-  H100 FP8 vs BF16            : +30-40% tok/s at identical power draw [measured, lit]
-  batch to the utilisation knee (256-512 on H100): energy/token plateaus
-
-So the choice is not "$1,786/MWh of revenue or nothing." It is a continuum, and
-the leverage ratio (power shed / revenue lost) is roughly 4.5x at shallow depths.
-
-This re-runs the 4CP economics on the dial instead of the switch.
+This reruns the 4CP economics for partial settings. With --measured it uses the
+frontier that sweep.py measured on an H100, and on that data no setting beats
+switching off.
 """
 import strike
 
@@ -92,10 +88,8 @@ if __name__ == "__main__":
     for shed, rl, lbl in FRONTIER:
         if shed == 0: continue
         print(f"  {lbl:<30}{breakeven_hours(shed,rl):>20.0f}")
-    # Derived, not asserted. The literature-anchored version of this file
-    # claimed the dial beat the switch; the measured frontier says otherwise,
-    # and a hardcoded conclusion that contradicts its own data is worse than
-    # no conclusion at all.
+    # the conclusion is computed from the frontier in use, because the
+    # literature figures and the measured ones disagree
     sw = breakeven_hours(1.0, 1.0)
     best_lbl, best_be = None, -1
     for shed, rl, lbl in FRONTIER:
@@ -104,7 +98,7 @@ if __name__ == "__main__":
         be = breakeven_hours(shed, rl)
         if be > best_be:
             best_lbl, best_be = lbl, be
-    print(f"\n  The best no-hindsight rule in strike.py needs ~115 hrs/yr to catch all four peaks.")
+    print(f"\n  The cheapest no-hindsight rule in strike.py needs well over 100 hrs/yr to catch every peak.")
     print(f"  Full curtailment breaks even at {sw:.0f} hrs -> it loses.")
     if best_lbl is None:
         print("  No partial operating point measured.")

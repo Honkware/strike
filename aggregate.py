@@ -6,7 +6,7 @@ This is the objection that decides whether the finding is useful or a curiosity.
 A grid operator does not see one GPU; it sees thousands summed at a meter. If
 per-GPU variability averages away, there is nothing to read.
 
-The reason to think it does NOT average away, and the whole point:
+The reason to think it does not average away, and the whole point:
 
   * data-parallel TRAINING is synchronised by construction. Every GPU runs the
     same step, waits at the same all-reduce, and idles in the same gap. Their
@@ -133,16 +133,13 @@ def main():
 
     print()
     if worst and worst >= 2:
-        print(f"  HOLDS. Even in the worst case tested the bands stay {worst:.0f}x apart.")
-        print(f"  Aggregation does not erase the signature, it SHARPENS it: the")
-        print(f"  inference fleet averages toward flat while the training fleet")
-        print(f"  keeps its shape, because only one of the two is in step with")
-        print(f"  itself. The meter reading a whole datacenter is a better")
-        print(f"  discriminator than a probe on one GPU.")
+        print(f"  In the worst case tested the two bands stay {worst:.1f}x apart.")
+        print(f"  Summing over a fleet makes the difference clearer, because the")
+        print(f"  inference nodes average toward flat while synchronised training")
+        print(f"  keeps its shape.")
     else:
-        print(f"  FAILS at {worst:.1f}x - the signature washes out before substation")
-        print(f"  scale, so this only works with per-node telemetry the operator")
-        print(f"  would have to volunteer. That is a much weaker product.")
+        print(f"  The bands are only {worst:.1f}x apart in the worst case, so the")
+        print(f"  difference washes out at fleet scale and would need per-node data.")
 
 
 if __name__ == "__main__":

@@ -2,13 +2,13 @@
 """
 STRIKE - is load flexibility worth it for an AI datacenter in ERCOT?
 
-Everything is measured against real data, and every assumption is a parameter.
-The whole thesis reduces to one number: HOURS OF CURTAILMENT NEEDED TO CATCH
-ALL FOUR 4CP INTERVALS. Get under ~32 h/yr and flexibility pays at any
-workload mix; miss it and you destroy value.
+Uses real ERCOT prices and load, and every assumption is a value in P below.
+The question comes down to one number, the hours of curtailment a rule needs to
+catch all four 4CP intervals in a year. backtest() prints the break-even next to
+what each rule needs.
 
   python3 strike.py fetch     pull + cache ERCOT prices and load (needs API key)
-  python3 strike.py energy    does curtailing on PRICE pay?      (answer: no)
+  python3 strike.py energy    does curtailing on price pay?
   python3 strike.py fourcp    find the real 4CP intervals
   python3 strike.py backtest  no-hindsight curtailment rules
   python3 strike.py surface   net $/MW-yr vs forecaster quality x deferability
@@ -23,7 +23,8 @@ API = "https://api.gridstatus.io/v1/datasets"
 
 # ---- parameters. every one of these is an assumption; change them and re-run ----
 P = dict(
-    cp_rate      = 56510.0,   # $/MW-yr  CenterPoint 4CP transmission. VERIFY against current tariff.
+    cp_rate      = 68805.0,   # $/MVA-yr CenterPoint Rider TCRF, Transmission Service: $5.733756 per 4 CP kVA a month
+                              # x 12, effective 2026-03-01 (PUC docket 59042). Base transmission charge not included.
     gpu_hr       = 2.50,      # $/GPU-hr on-demand H100
     kw_per_gpu   = 1.40,      # facility kW per GPU incl. PUE and overhead
     deferrable   = 0.0,       # share of load that can be postponed rather than lost
@@ -72,13 +73,15 @@ def _page(ds, a, b, **extra):
 def fetch():
     CACHE.mkdir(exist_ok=True)
     for a, b in [("2024-08-01","2025-02-01"),("2025-02-01","2025-08-01"),
-                 ("2025-08-01","2026-02-01"),("2026-02-01","2026-08-05")]:
+                 ("2025-08-01","2026-02-01"),("2026-02-01","2026-08-05"),
+                 ("2026-08-05","2026-10-01")]:
         f = CACHE / f"lz_houston_{a}.json"
         if not f.exists():
             f.write_text(json.dumps(_page("ercot_spp_real_time_15_min", a+"T00:00:00Z", b+"T00:00:00Z",
                 filter_column="location", filter_value="LZ_HOUSTON", filter_operator="=")))
         print(f"  prices {a}: {len(json.loads(f.read_text())):,}")
-    for a, b in [("2024-05-15","2024-10-15"),("2025-05-15","2025-10-15"),("2026-05-15","2026-08-05")]:
+    for a, b in [("2024-05-15","2024-10-15"),("2025-05-15","2025-10-15"),("2026-05-15","2026-08-05"),
+                 ("2026-08-05","2026-10-01")]:
         f = CACHE / f"load_{a}.json"
         if not f.exists():
             f.write_text(json.dumps(_page("ercot_load", a+"T00:00:00Z", b+"T00:00:00Z")))
@@ -145,16 +148,15 @@ def backtest():
     iv = intervals(); L = dict(iv); pk = four_cp(iv)
     be = P["cp_rate"] / curtail_cost() if curtail_cost() else float("inf")
     print(f"\nBREAK-EVEN: at most {be:.1f} curtailment hrs/yr at deferrable={P['deferrable']:.0%}\n")
-    print("Rule A: curtail if load 1h ago > T, weekday 14-19h CPT, Jun-Sep. No hindsight.")
+    print("Rule A: curtail if load 1h ago > T, any day 14-19h CPT, Jun-Sep. No hindsight.")
     print(f"  {'T (MW)':>9}{'hrs/yr':>9}{'caught':>10}{'net $/MW-yr':>14}")
     full = []
     for T in (76000, 78000, 80000, 82000):
         h, c, n = 0, 0, 0
         for (yr, mo), (p0, _) in pk.items():
-            if yr == 2026 and mo == 9: continue
             n += 1
             for k, _ in iv:
-                if k.year != yr or k.month != mo or k.weekday() >= 5 or not (14 <= k.hour < 19): continue
+                if k.year != yr or k.month != mo or not (14 <= k.hour < 19): continue
                 prev = L.get(k - timedelta(hours=1))
                 if prev is not None and prev >= T:
                     h += 0.25
@@ -166,7 +168,7 @@ def backtest():
     # The month's record so far is known at decision time, so a fixed MW threshold
     # does not have to carry across a cool June and a hot August.
     print("\nRule B: curtail if load 1h ago >= alpha x the month's max load up to 1h ago,")
-    print("        weekday 14-19h CPT, Jun-Sep. No hindsight.")
+    print("        any day 14-19h CPT, Jun-Sep. No hindsight.")
     print(f"  {'alpha':>9}{'hrs/yr':>9}{'caught':>10}{'net $/MW-yr':>14}")
     for a in (1.00, 0.99, 0.98):
         h, c, n = 0, 0, 0
@@ -177,7 +179,7 @@ def backtest():
                 if k.year != yr or k.month != mo: continue
                 prev = L.get(k - timedelta(hours=1))
                 if (rmax and prev is not None and prev >= a * rmax
-                        and k.weekday() < 5 and 14 <= k.hour < 19):
+                        and 14 <= k.hour < 19):
                     h += 0.25
                     if k == p0: c += 1
                 if prev is not None: rmax = max(rmax, prev)
@@ -190,7 +192,7 @@ def backtest():
 
 def surface():
     print(f"\nNET $/MW-yr capturing all four 4CP intervals (4CP rate ${P['cp_rate']:,.0f}/MW-yr)\n")
-    hrs = [115, 80, 60, 40, 30, 20, 12, 6]     # 115: backtest() rule B, 114.5 h/yr
+    hrs = [148, 100, 60, 40, 30, 20, 12, 6]    # 148: backtest() rule B at alpha 0.99
     print(f"  {'deferrable':>11}" + "".join(f"{h:>9}h" for h in hrs))
     print("  " + "-" * (11 + 10 * len(hrs)))
     for d in (0.0, 0.25, 0.5, 0.7, 0.8, 0.9, 1.0):

@@ -2,19 +2,17 @@
 """
 FORECAST - can you catch ERCOT's 4CP peaks cheaply enough to be worth it?
 
-This is the one number the rest of STRIKE reduces to. Transmission cost is
-allocated by your demand during four 15-minute intervals a year. Catching them
-is worth $56,510/MW-yr; curtailing costs $1,786/MWh of lost compute. So:
+Transmission cost is allocated by demand during four 15-minute intervals a
+year. The break-even number of curtailment hours is strike.P["cp_rate"] over
+the value of compute, and backtest() prints it.
 
-    break-even = 56,510 / 1,786 = 31.6 curtailment hours per year
+The no-hindsight rules in strike.py that catch every peak need far more hours
+than that. This checks whether a model built on published temperature
+forecasts gets closer.
 
-The no-hindsight rules in strike.py that catch every peak need 114-220 h/yr.
-This measures whether a forecaster built on published temperature forecasts
-closes the gap to 32.
-
-Nothing here is simulated. Real ERCOT load, real settlement peaks, and - the
-part that makes the backtest honest - real FORECASTS with their publish times,
-so the model only ever sees what was actually published before the decision.
+It uses real ERCOT load, real settlement peaks and real forecasts with their
+publish times, so the model only sees what had been published before the
+decision.
 
     python3 forecast.py fetch          # pull forecasts (cached)
     python3 forecast.py backtest       # walk-forward, no hindsight
@@ -33,7 +31,8 @@ LEADS = (1, 4, 24)
 # 4CP is settled Jun-Sep. Everything outside is irrelevant to the charge.
 SEASONS = [("2024-06-01", "2024-10-01"),
            ("2025-06-01", "2025-10-01"),
-           ("2026-06-01", "2026-08-05")]
+           ("2026-06-01", "2026-08-05"),
+           ("2026-08-05", "2026-10-01")]
 
 
 def _iso(s):
@@ -41,13 +40,12 @@ def _iso(s):
 
 
 def _reduce(rows, keep, fields):
-    """Keep, per (interval, lead), the LATEST forecast published at least `lead`
+    """Keep, per (interval, lead), the latest forecast published at least `lead`
     hours before the interval starts.
 
-    This is the whole no-hindsight guarantee, and it lives here rather than in
-    the model: a forecast revised at 16:00 for a 16:00 peak is a perfect
-    prediction and completely useless. Filtering on publish_time is the only
-    thing standing between an honest backtest and a fraudulent one."""
+    Filtering on publish_time is what keeps hindsight out of the backtest. A
+    forecast revised at 16:00 for a 16:00 peak would be nearly perfect and no
+    use for a decision made the day before."""
     for x in rows:
         try:
             t, p = _iso(x["interval_start_utc"]), _iso(x["publish_time_utc"])
@@ -102,8 +100,6 @@ def _page_reduce(ds, a, b, fields):
 
 
 SOURCES = {
-    "netload": ("ercot_net_load_forecast",
-                ["load_forecast", "solar_forecast", "wind_forecast", "net_load_forecast"]),
     "temp":    ("ercot_temperature_forecast_by_weather_zone",
                 ["coast", "north_central", "south_central", "west", "southern"]),
 }
@@ -209,7 +205,7 @@ def backtest(lead=24, alpha=0.995, beta=None, window=(14, 18), min_train=30,
     """Two-stage, walk forward one day at a time.
 
     STAGE 1 (day-ahead, from temperature): arm the day if its predicted peak
-    could beat the month's running maximum. The model for day D is fit ONLY on
+    could beat the month's running maximum. The model for day D is fit only on
     days strictly before D, from forecasts published >= `lead` hours ahead.
 
     STAGE 2 (intraday, from observed load): on an armed day, curtail interval T
@@ -372,24 +368,23 @@ def report():
           f"   ({d['gap']/d['level']:.2%} of peak)")
     print(f"  precision a day-ahead forecast delivers")
     print(f"    walk-forward temperature model                {d['walk']:>8,.0f} MW")
-    print(f"    same features fit WITH hindsight (the floor)  {d['hind']:>8,.0f} MW")
+    print(f"    same features fit with hindsight (the floor)  {d['hind']:>8,.0f} MW")
     print(f"    persistence, 'tomorrow equals today'          {d['pers']:>8,.0f} MW")
     print(f"\n  The error bar is {d['hind']/d['gap']:.0f}x the gap it would have to resolve, and that")
     print(f"  holds even fitting on the answers. The temperature model does not")
     print(f"  beat persistence ({d['walk']:,.0f} vs {d['pers']:,.0f} MW), so these features carry")
-    print(f"  almost no marginal information about WHICH hot day sets the record.")
+    print(f"  almost no marginal information about which hot day sets the record.")
     print(f"\n  Ranking the top days of a month needs a day-ahead peak forecast")
     print(f"  accurate to {d['gap']/d['level']:.2%}. The best these features reach, fit on")
     print(f"  the answers, is {d['hind']/d['level']:.1%} - an order of magnitude coarser. This is")
     print(f"  not a tuning problem. (Published ERCOT day-ahead load MAPE is")
     print(f"  around 2%, consistent with that, but is cited here, not measured.)")
-    print(f"\n  MEASURED CONSEQUENCE: best honest full coverage is {best[0]:.1f} h/yr")
+    print(f"\n  The cheapest rule here that catches every peak needs {best[0]:.1f} h/yr")
     print(f"  against a {breakeven:.1f} h/yr break-even, so curtailment-based 4CP")
     print(f"  avoidance pays only if {1-breakeven/best[0]:.0%} of the load is deferrable rather")
-    print(f"  than lost. Since you cannot know WHICH day, you must be cheap to")
-    print(f"  curtail on MANY days - which is precisely what densify.py measured")
-    print(f"  at $0 (94% of the saving comes from batching, not from timing).")
-    print(f"\n  The prediction route is closed. The flexibility route is not.")
+    print(f"  than lost. The peak day can't be picked out a day ahead, so the load")
+    print(f"  would have to be cheap to move on many days, which is what densify.py")
+    print(f"  looks at.")
 
 
 if __name__ == "__main__":

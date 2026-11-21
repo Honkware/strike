@@ -70,7 +70,7 @@ def main():
 
     # 3. Variance must track the workload, not the load. If CV rose with watts
     #    we would be measuring utilisation with extra steps. The disproof is a
-    #    direct inversion: some inference case draws MORE power than some
+    #    direct inversion: some inference case draws more power than some
     #    training case and still has LOWER CV. Monotonic-in-power forbids that.
     inv = [(b, a) for a in tcv for b in icv if iw[b] > tw[a] and icv[b] < tcv[a]]
     check("CV inverts against power somewhere (so it is not a power proxy)",
@@ -123,7 +123,7 @@ def main():
     if FAILS:
         print(f"{len(FAILS)} FAILED: {', '.join(FAILS)}")
         return 1
-    print("all pinned. the finding is what it was when measured.")
+    print("all checks passed")
     return 0
 
 

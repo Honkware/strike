@@ -26,9 +26,7 @@ matched-power pair: train_b1 (345W)  vs  infer_b256 (351W)
    10,000     64       0.0126        0.0005       27.8x
    10,000    512       0.0046        0.0005       10.2x
 
-  HOLDS. Even in the worst case tested the bands stay 3x apart.
-  Aggregation does not erase the signature, it SHARPENS it: the
-  inference fleet averages toward flat while the training fleet
-  keeps its shape, because only one of the two is in step with
-  itself. The meter reading a whole datacenter is a better
-  discriminator than a probe on one GPU.
+  In the worst case tested the two bands stay 2.6x apart.
+  Summing over a fleet makes the difference clearer, because the
+  inference nodes average toward flat while synchronised training
+  keeps its shape.

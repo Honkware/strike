@@ -27,5 +27,5 @@
   CONTROL:     at matched power (345W vs 351W) the CVs are 0.120 vs 0.041 - 2.9x
 
   GO. Variance separates the workloads independently of how loaded
-  they are, so a power trace identifies WHAT is running, not just
+  they are, so a power trace identifies what is running, not just
   how much. That is the signature a grid operator could read.

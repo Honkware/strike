@@ -74,7 +74,7 @@ def main():
     check("a MW of H100s earns $1,786/MWh at $2.50/GPU-hr and 1.4 kW/GPU",
           round(strike.compute_mwh()) == 1786, f"{strike.compute_mwh():.1f}")
     be = strike.P["cp_rate"] / strike.curtail_cost()
-    check("break-even is 31.6 curtailment h/yr", round(be, 1) == 31.6, f"{be:.2f}")
+    check("break-even is 38.5 curtailment h/yr", round(be, 1) == 38.5, f"{be:.2f}")
     half = strike.curtail_cost(dict(strike.P, deferrable=0.5))
     check("deferred work costs nothing, so 50% deferrable halves the cost",
           abs(half - strike.compute_mwh() / 2) < 1e-9)

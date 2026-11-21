@@ -232,8 +232,8 @@ def sweep(args):
                 print(f"    {dt:<5} cap {pct:>3}%  batch {b:>4}  "
                       f"{r['watts_mean']:>6.1f}W  {r['tok_per_s']:>8.1f} tok/s  "
                       f"{r['joules_per_token']} J/tok")
-                # INSURANCE: persist after every point, so a later crash cannot
-                # take earlier measurements with it (ops brief, stage 1.5).
+                # save after every point, so a crash later in the sweep keeps
+                # the measurements already taken
                 if save_to:
                     pathlib.Path(save_to).write_text(json.dumps(
                         dict(gpu=info, model=args.model, dtypes=dtypes, mode=mode,
@@ -252,7 +252,7 @@ def frontier(data):
     rows = data["rows"]
     if not rows:
         return []
-    # The reference point is the configuration drawing the MOST power - that is
+    # The reference point is the configuration drawing the most power - that is
     # the datacenter running flat out. Every other point is a dial setting.
     base = max(rows, key=lambda r: r["watts_mean"])
     out = []

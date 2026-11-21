@@ -195,7 +195,7 @@ def main():
     ap.add_argument("--hz", type=int, default=200)
     ap.add_argument("--out", default="traces.json")
     ap.add_argument("--replay")
-    # Sweeping batch WITHIN each workload type is the control: if CV tracks the
+    # Sweeping batch within each workload type is the control: if CV tracks the
     # workload it stays split at matched power; if it tracks utilisation it does not.
     ap.add_argument("--cases",
                     default="train:1,train:2,train:4,train:8,"
@@ -269,7 +269,7 @@ def main():
               f"{t[1]:.3f} vs {i[1]:.3f} - {t[1]/i[1]:.1f}x")
     if gap >= 2 and overlap and overlap[0][0][1] / overlap[0][1][1] >= 2:
         print(f"\n  GO. Variance separates the workloads independently of how loaded")
-        print(f"  they are, so a power trace identifies WHAT is running, not just")
+        print(f"  they are, so a power trace identifies what is running, not just")
         print(f"  how much. That is the signature a grid operator could read.")
     elif gap >= 2:
         print(f"\n  PARTIAL: bands separate but no matched-power pair to rule out")

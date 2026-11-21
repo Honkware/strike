@@ -1,4 +1,4 @@
-# Every table in README.md comes from one of these files. The ERCOT targets
+# The numbers in README.md come from these files. The ERCOT targets
 # need cache/, which `make fetch` builds (GRIDSTATUS_API_KEY, free tier).
 PY ?= python3
 

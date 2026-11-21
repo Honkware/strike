@@ -1,5 +1,5 @@
 measured curve (frontier_7b.json): b1=4.159J  b32=0.170J  b128=0.078J
-prices: 70,461 intervals, mean $31.86/MWh
+prices: 75,932 intervals, mean $32.36/MWh
 workload: 2,000 jobs over 168h, 988.0B tokens
 
    deadline slack  mean batch    runs     MWh/yr        $/yr  vs no slack
@@ -15,7 +15,7 @@ workload: 2,000 jobs over 168h, 988.0B tokens
 
   WHICH MECHANISM PAYS
     no slack, price-blind          $     518,511/yr
-    timing only (cheapest quartile)$     263,341/yr      49% saved
+    timing only (cheapest quartile)$     271,921/yr      48% saved
     density only (8h slack)        $      31,328/yr      94% saved
 
   GRID SERVICE - keeping 15:00-17:59 clear (the 4CP band)
@@ -25,12 +25,10 @@ workload: 2,000 jobs over 168h, 988.0B tokens
        8h              31,328              31,328               +0
       24h              32,401              31,686             -715
 
-  With enough slack the 4CP band costs ~nothing to vacate - the load
-  simply lands elsewhere. That is dispatchable capacity the grid can
-  count on, at no loss to the operator, and it avoids a 4CP charge
-  worth $56,510/MW-yr (strike.py). Curtailment, measured earlier,
-  costs -$300,000/MW-yr to deliver the same service.
+  With enough slack the 4CP band costs almost nothing to keep clear,
+  because the work lands in other hours. That avoids a 4CP charge worth
+  $68,805/MW-yr (strike.py) without losing any compute.
 
-  Deferral pays by ENABLING BATCHING, not by finding cheap hours.
+  Deferral pays by letting jobs batch, more than by finding cheap hours.
   The same work costs 54x more energy run one job at a time,
   and the curve saturates by ~8h - you need hours of slack, not days.
